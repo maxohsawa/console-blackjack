@@ -34,7 +34,7 @@ def initialize_player():
 
 		starting_amount_invalid = False
 
-	display_message("CHANGING ${player_starting_amount}")
+	display_message(f"CHANGING ${player_starting_amount}")
 
 	return player_class.Player(player_name, player_starting_amount)
 
@@ -60,9 +60,9 @@ def take_player_bet(player):
 
 	player.withdraw(bet)
 
-	return bet
+	display_message(f"${bet} BET")
 
-	print(f"\n===== ${bet} BET =====")
+	return bet
 
 def deal_card_to_player(deck,player):
 	card = deck.draw_card()
@@ -78,7 +78,7 @@ def deal_blind_to_dealer(deck,dealer):
 
 def deal_starting_hands(deck,player,dealer):
 
-	print("\n===== DEALING CARDS =====")
+	display_message("DEALING CARDS")
 	deal_card_to_player(deck,player)
 	deal_card_to_dealer(deck,dealer)
 	deal_card_to_player(deck,player)
@@ -99,19 +99,19 @@ def total_hand(hand):
 
 def glimpse_player_hand(player):
 
-	print(f"\n===== {player.name.upper()}'S HAND =====")
+	display_message(f"{player.name.upper()}'S HAND")
 
 	player.print_hand()
 
 	print(f"\n{player.name}'s value: {total_hand(player.hand)}")
 
 	if total_hand(player.hand) == 21:
-		print("\n===== BLACKJACK =====")
+		display_message("BLACKJACK")
 	
 
 def glimpse_dealer_hand(dealer):
 
-	print("\n===== DEALER'S HAND =====")
+	display_message("DEALER'S HAND")
 
 	dealer.print_hand()
 
@@ -120,7 +120,7 @@ def glimpse_dealer_hand(dealer):
 		print(f"\nDealer's value: {total_hand(dealer.hand)}")
 
 		if total_hand(dealer.hand) == 21:
-			print("\n===== BLACKJACK =====")
+			display_message("BLACKJACK")
 
 def get_hit_option():
 
@@ -157,6 +157,64 @@ def get_replay_option():
 
 	return option
 
+def player_turn_loop(deck,player):
+
+	player_bust = False
+
+	hit_option = get_hit_option()
+
+	while hit_option == 'h':
+
+		display_message(f"{player.name.upper()}HIT")
+
+		deal_card_to_player(deck,player)
+
+		glimpse_player_hand(player)
+
+		if check_bust(player):
+
+			display_message(f"{player.name.upper()} BUST")
+			player_bust = True
+			hit_option = 's'
+			input("\nHit Enter to Continue")
+			break
+
+		else:
+			hit_option = get_hit_option()
+
+	return player_bust
+
+def dealer_turn_loop(deck,dealer):
+
+	dealer_bust = False
+
+	display_message("DEALER'S TURN")
+
+	dealer.blind_to_hand()
+
+	glimpse_dealer_hand(dealer)
+
+	input("\nHit Enter to Continue")
+
+	while total_hand(dealer.hand) < 17:
+
+		display_message("DEALER HIT")
+
+		deal_card_to_dealer(deck,dealer)
+
+		glimpse_dealer_hand(dealer)
+
+		if check_bust(dealer):
+
+			display_message("DEALER BUST")
+			dealer_bust = True
+			input("\nHit Enter to Continue")
+			break
+
+		input("\nHit Enter to Continue")
+
+	return dealer_bust
+
 '''
 MAIN
 '''
@@ -173,12 +231,8 @@ if __name__ == '__main__':
 
 	while replay_flag:
 
-		# shuffle deck
 		display_message("SHUFFLING")
 		deck.shuffle_deck()
-
-		player_bust = False
-		dealer_bust = False
 
 		bet = take_player_bet(player)
 
@@ -188,61 +242,21 @@ if __name__ == '__main__':
 
 		glimpse_dealer_hand(dealer)
 
-		hit_option = get_hit_option()
+		player_bust = player_turn_loop(deck,player)
 
-		while hit_option == 'h':
+		if not player_bust:
 
-			display_message("HIT")
+			display_message(f"{player.name.upper()} STAY")
 
-			deal_card_to_player(deck,player)
+			dealer_bust = dealer_turn_loop(deck,dealer)
 
-			glimpse_player_hand(player)
-
-			if check_bust(player):
-
-				display_message("BUST")
-				player_bust = True
-				hit_option = 's'
-				input("\nHit Enter to Continue")
-				break
-
-			else:
-				hit_option = get_hit_option()
-
-		if hit_option == 's':
-
-			display_message("DEALER'S TURN")
-
-			dealer.blind_to_hand()
-
-			glimpse_dealer_hand(dealer)
-
-			input("\nHit Enter to Continue")
-
-			while total_hand(dealer.hand) < 17:
-
-				display_message("HIT")
-
-				deal_card_to_dealer(deck,dealer)
-
-				glimpse_dealer_hand(dealer)
-
-				if check_bust(dealer):
-
-					display_message("BUST")
-					dealer_bust = True
-					input("\nHit Enter to Continue")
-					break
-
-				input("\nHit Enter to Continue")
-
-		if player_bust or (total_hand(dealer.hand) > total_hand(player.hand)):
+		if player_bust or (not dealer_bust and (total_hand(dealer.hand) > total_hand(player.hand))):
 
 			display_message("DEALER WINS")
 			print(f"You lose ${bet}")
 			player.loss_count += 1
 
-		elif (not player_bust and dealer_bust) or (total_hand(player.hand) > total_hand(dealer.hand)):
+		elif dealer_bust or (total_hand(player.hand) > total_hand(dealer.hand)):
 
 			display_message(f"{player.name.upper()} WINS")
 			display_message(f"${bet}")
