@@ -236,22 +236,26 @@ if __name__ == '__main__':
 			if player_bust and dealer_bust:
 
 				print("\n===== DEALER WINS =====")
+				print(f"You lose ${bet}")
 				player.loss_count += 1
 
 			elif player_bust and not dealer_bust:
 
 				print("\n===== DEALER WINS =====")
+				print(f"You lose ${bet}")
 				player.loss_count += 1
 
 			elif not player_bust and dealer_bust:
 
 				print(f"\n===== {player.name.upper()} WINS =====")
+				print(f"===== ${bet} =====")
 				player.win_count += 1
 				player.deposit(bet*2)
 
 			elif total_hand(player.hand) > total_hand(dealer.hand):
 
 				print(f"\n===== {player.name.upper()} WINS =====")
+				print(f"===== ${bet} =====")
 				player.win_count += 1
 				player.deposit(bet*2)
 
@@ -259,10 +263,12 @@ if __name__ == '__main__':
 			elif total_hand(dealer.hand) > total_hand(player.hand):
 
 				print("\n===== DEALER WINS =====")
+				print(f"You lose ${bet}")
 				player.loss_count += 1
 
 			else:
 				print("\n===== TIE =====")
+				print(f"You get ${bet} back")
 				player.tie_count += 1
 				player.deposit(bet)
 
