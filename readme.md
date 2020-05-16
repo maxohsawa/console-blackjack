@@ -1,6 +1,6 @@
 # console based blackjack game
 
-## launch
+## launch in console
 ```
 python blackjack.py
 ```

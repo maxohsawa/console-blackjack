@@ -5,6 +5,9 @@ import dealer_class
 
 value_conversion = {'Ace':11,'Two':2,'Three':3,'Four':4,'Five':5,'Six':6,'Seven':7,'Eight':8,'Nine':9,'Ten':10,'Jack':10,'Queen':10,'King':10}
 
+def display_message(message):
+	print(f"\n===== {message} =====")
+
 def initialize_deck():
 	return deck_class.Deck()
 
@@ -15,7 +18,7 @@ def initialize_player():
 
 	player_name = input("\nWhat is the player's name? ")
 
-	print(f"\n===== HI, {player_name.upper()} ======")
+	display_message(f"HI, {player_name.upper()}")
 
 	starting_amount_invalid = True
 
@@ -31,7 +34,7 @@ def initialize_player():
 
 		starting_amount_invalid = False
 
-	print(f"\n===== ${player_starting_amount} =====")
+	display_message("CHANGING ${player_starting_amount}")
 
 	return player_class.Player(player_name, player_starting_amount)
 
@@ -170,8 +173,8 @@ if __name__ == '__main__':
 
 	while replay_flag:
 
-		print("\n===== SHUFFLING =====")
-
+		# shuffle deck
+		display_message("SHUFFLING")
 		deck.shuffle_deck()
 
 		player_bust = False
@@ -189,7 +192,7 @@ if __name__ == '__main__':
 
 		while hit_option == 'h':
 
-			print("\n===== HIT =====")
+			display_message("HIT")
 
 			deal_card_to_player(deck,player)
 
@@ -197,7 +200,7 @@ if __name__ == '__main__':
 
 			if check_bust(player):
 
-				print("\n===== BUST =====")
+				display_message("BUST")
 				player_bust = True
 				hit_option = 's'
 				input("\nHit Enter to Continue")
@@ -208,7 +211,7 @@ if __name__ == '__main__':
 
 		if hit_option == 's':
 
-			print("\n===== DEALER'S TURN =====")
+			display_message("DEALER'S TURN")
 
 			dealer.blind_to_hand()
 
@@ -218,7 +221,7 @@ if __name__ == '__main__':
 
 			while total_hand(dealer.hand) < 17:
 
-				print("\n===== HIT =====")
+				display_message("HIT")
 
 				deal_card_to_dealer(deck,dealer)
 
@@ -226,66 +229,46 @@ if __name__ == '__main__':
 
 				if check_bust(dealer):
 
-					print("\n===== BUST =====")
+					display_message("BUST")
 					dealer_bust = True
 					input("\nHit Enter to Continue")
 					break
 
 				input("\nHit Enter to Continue")
 
-			if player_bust and dealer_bust:
+		if player_bust or (total_hand(dealer.hand) > total_hand(player.hand)):
 
-				print("\n===== DEALER WINS =====")
-				print(f"You lose ${bet}")
-				player.loss_count += 1
+			display_message("DEALER WINS")
+			print(f"You lose ${bet}")
+			player.loss_count += 1
 
-			elif player_bust and not dealer_bust:
+		elif (not player_bust and dealer_bust) or (total_hand(player.hand) > total_hand(dealer.hand)):
 
-				print("\n===== DEALER WINS =====")
-				print(f"You lose ${bet}")
-				player.loss_count += 1
+			display_message(f"{player.name.upper()} WINS")
+			display_message(f"${bet}")
+			player.win_count += 1
+			player.deposit(bet*2)
 
-			elif not player_bust and dealer_bust:
+		else:
+			display_message("TIE")
+			print(f"You get ${bet} back")
+			player.tie_count += 1
+			player.deposit(bet)
 
-				print(f"\n===== {player.name.upper()} WINS =====")
-				print(f"===== ${bet} =====")
-				player.win_count += 1
-				player.deposit(bet*2)
+		display_message("END OF HAND")
 
-			elif total_hand(player.hand) > total_hand(dealer.hand):
+		deck.deck.extend(player.remove_cards())
+		deck.deck.extend(dealer.remove_cards())
 
-				print(f"\n===== {player.name.upper()} WINS =====")
-				print(f"===== ${bet} =====")
-				player.win_count += 1
-				player.deposit(bet*2)
+		print(player.history_string())
 
+		if player.amount == 0:
+			print("\nYou're out of money!")
+			break
 
-			elif total_hand(dealer.hand) > total_hand(player.hand):
+		replay_option = get_replay_option()
 
-				print("\n===== DEALER WINS =====")
-				print(f"You lose ${bet}")
-				player.loss_count += 1
-
-			else:
-				print("\n===== TIE =====")
-				print(f"You get ${bet} back")
-				player.tie_count += 1
-				player.deposit(bet)
-
-			print("\n===== END OF HAND =====")
-
-			deck.deck.extend(player.remove_cards())
-			deck.deck.extend(dealer.remove_cards())
-
-			print(player.history_string())
-
-			if player.amount == 0:
-				print("\nYou're out of money!")
-				break
-
-			replay_option = get_replay_option()
-
-			if replay_option == 'n':
-				replay_flag = False
+		if replay_option == 'n':
+			replay_flag = False
 
 	print(f"\nThanks for playing, {player.name}!\n")
